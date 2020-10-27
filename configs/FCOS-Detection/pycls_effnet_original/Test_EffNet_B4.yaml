@@ -1,0 +1,15 @@
+MODEL:
+  WEIGHTS: "weights/EN-B4_dds_8gpu.pyth"
+EN:
+  TYPE: effnet
+  NUM_CLASSES: 1000
+  ACTIVATION_FUN: silu
+  STEM_W: 48
+  STRIDES: [1, 2, 2, 2, 1, 2, 1]
+  DEPTHS: [2, 4, 4, 6, 6, 8, 2]
+  WIDTHS: [24, 32, 56, 112, 160, 272, 448]
+  EXP_RATIOS: [1, 6, 6, 6, 6, 6, 6]
+  KERNELS: [3, 3, 5, 3, 5, 5, 3]
+  HEAD_W: 1792
+
+  

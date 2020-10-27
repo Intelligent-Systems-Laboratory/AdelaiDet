@@ -76,6 +76,81 @@ _C.MODEL.DLA.OUT_FEATURES = ["stage2", "stage3", "stage4", "stage5"]
 _C.MODEL.DLA.NORM = "FrozenBN"
 
 # ---------------------------------------------------------------------------- #
+# EffNet backbone
+# ---------------------------------------------------------------------------- #
+_C.EN = CN()
+
+# Stem width
+_C.EN.STEM_W = 32
+
+# Depth for each stage (number of blocks in the stage)
+_C.EN.DEPTHS = []
+
+# Width for each stage (width of each block in the stage)
+_C.EN.WIDTHS = []
+
+# Expansion ratios for MBConv blocks in each stage
+_C.EN.EXP_RATIOS = []
+
+# Squeeze-and-Excitation (SE) ratio
+_C.EN.SE_R = 0.25
+
+# Strides for each stage (applies to the first block of each stage)
+_C.EN.STRIDES = []
+
+# Kernel sizes for each stage
+_C.EN.KERNELS = []
+
+# Head width
+_C.EN.HEAD_W = 1280
+
+# Drop connect ratio
+_C.EN.DC_RATIO = 0.0
+
+# Dropout ratio
+_C.EN.DROPOUT_RATIO = 0.0
+
+# Model type
+_C.EN.TYPE = ""
+
+# Number of weight layers
+_C.EN.DEPTH = 0
+
+# Number of classes
+_C.EN.NUM_CLASSES = 10
+
+# Loss function (see pycls/models/loss.py for options)
+_C.EN.LOSS_FUN = "cross_entropy"
+
+# Activation function (relu or silu/swish)
+_C.EN.ACTIVATION_FUN = "relu"
+
+# Perform activation inplace if implemented
+_C.EN.ACTIVATION_INPLACE = True
+
+# ---------------------------------------------------------------------------- #
+# Batch Norm Options
+# ---------------------------------------------------------------------------- #
+_C.BN = CN()
+
+# BN epsilon
+_C.BN.EPS = 1e-5
+
+# BN momentum (BN momentum in PyTorch = 1 - BN momentum in Caffe2)
+_C.BN.MOM = 0.1
+
+# Precise BN stats
+_C.BN.USE_PRECISE_STATS = True
+_C.BN.NUM_SAMPLES_PRECISE = 8192
+
+# Initialize the gamma of the final BN of each block to zero
+_C.BN.ZERO_INIT_FINAL_GAMMA = False
+
+# Use a different weight decay for BN layers
+_C.BN.USE_CUSTOM_WEIGHT_DECAY = False
+_C.BN.CUSTOM_WEIGHT_DECAY = 0.0
+
+# ---------------------------------------------------------------------------- #
 # BAText Options
 # ---------------------------------------------------------------------------- #
 _C.MODEL.BATEXT = CN()
