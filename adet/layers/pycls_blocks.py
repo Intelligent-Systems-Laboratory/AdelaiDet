@@ -11,12 +11,12 @@ import numpy as np
 import torch
 import torch.nn as nn
 # from pycls.core.config import cfg
-from adet.layers.pycls_blocks import cfg
+from adet.config.config import get_cfg
 from torch.nn import Module
 
 
 # ----------------------- Shortcuts for common torch.nn layers ----------------------- #
-
+cfg = get_cfg()
 
 def conv2d(w_in, w_out, k, *, stride=1, groups=1, bias=False):
     """Helper for building a conv2d layer."""
