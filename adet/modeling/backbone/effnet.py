@@ -207,7 +207,7 @@ class EffNet(Backbone):
 # Modify EffNet forward function
     def forward(self, x):
         outputs = {}
-        outputs['stem'] = self.stem
+        # outputs['stem'] = self.stem
         for m in self._modules:
             module = self._modules[m]
             x = module(x)
