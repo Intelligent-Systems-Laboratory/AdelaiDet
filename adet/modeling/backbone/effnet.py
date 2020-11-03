@@ -210,6 +210,8 @@ class EffNet(Backbone):
             x = module(x)
             outputs[m] = x
 
+        return outputs
+
     @staticmethod
     def complexity(cx, params=None):
         """Computes model complexity (if you alter the model, make sure to update)."""
