@@ -243,3 +243,43 @@ _C.MODEL.BiFPN.NUM_REPEATS = 6
 
 # Options: "" (no norm), "GN"
 _C.MODEL.BiFPN.NORM = ""
+
+# ---------------------------------------------------------------------------- #
+# EfficientNet options
+# ---------------------------------------------------------------------------- #
+_C.MODEL.EffNet = CN()
+
+# for detectron
+_C_MODEL_EffNet.OUT_FEATURES = ["s3", "s4", "s5", "s6", "s7"]
+
+# FROM PYCLS CONFIG FILE
+
+# Stem width
+_C.MODEL.EffNet.STEM_W = 32
+
+# Depth for each stage (number of blocks in the stage)
+_C.MODEL.EffNet.DEPTHS = []
+
+# Width for each stage (width of each block in the stage)
+_C.MODEL.EffNet.WIDTHS = []
+
+# Expansion ratios for MBConv blocks in each stage
+_C.MODEL.EffNet.EXP_RATIOS = []
+
+# Squeeze-and-Excitation (SE) ratio
+_C.MODEL.EffNet.SE_R = 0.25
+
+# Strides for each stage (applies to the first block of each stage)
+_C.MODEL.EffNet.STRIDES = []
+
+# Kernel sizes for each stage
+_C.MODEL.EffNet.KERNELS = []
+
+# Head width
+_C.MODEL.EffNet.HEAD_W = 1280
+
+# Drop connect ratio
+_C.MODEL.EffNet.DC_RATIO = 0.0
+
+# Dropout ratio
+_C.MODEL.EffNet.DROPOUT_RATIO = 0.0

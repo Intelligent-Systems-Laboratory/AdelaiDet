@@ -27,6 +27,8 @@ from torch.nn import Dropout, Module
 # Modifications for Detectron2/AdelaiDet
 from detectron2.modeling.backbone import Backbone
 from detectron2.modeling.backbone.build import BACKBONE_REGISTRY
+from detectron2.modeling.backbone.fpn import FPN
+from .fpn import LastLevelP6, LastLevelP6P7
 
 from adet.layers.pycls_blocks import (
     SE,
@@ -228,18 +230,36 @@ class EffNet(Backbone):
         return cx
 
 @BACKBONE_REGISTRY.register()
-def build_effnet_backbone(cfg, input_shape):
+def build_effnet_backbone(cfg, input_shape: ShapeSpec):
     params = {
-        "sw": cfg.EN.STEM_W,
-        "ds": cfg.EN.DEPTHS,
-        "ws": cfg.EN.WIDTHS,
-        "exp_rs": cfg.EN.EXP_RATIOS,
-        "se_r": cfg.EN.SE_R,
-        "ss": cfg.EN.STRIDES,
-        "ks": cfg.EN.KERNELS,
-        "hw": cfg.EN.HEAD_W,
-        "nc": cfg.MODEL.NUM_CLASSES,
+        "sw": cfg.MODEL.EffNet.STEM_W,
+        "ds": cfg.MODEL.EffNet.DEPTHS,
+        "ws": cfg.MODEL.EffNet.WIDTHS,
+        "exp_rs": cfg.MODEL.EffNet.EXP_RATIOS,
+        "se_r": cfg.MODEL.EffNet.SE_R,
+        "ss": cfg.MODEL.EffNet.STRIDES,
+        "ks": cfg.MODEL.EffNet.KERNELS,
+        "hw": cfg.MODEL.EffNet.HEAD_W,
+        "nc": cfg.MODEL.FCOS.NUM_CLASSES, # Not used since EffHead is removed
     }
     model = EffNet(cfg, params)
 
     return model
+
+
+@BACKBONE_REGISTRY.register()
+def build_effnet_fpn_backbone(cfg, input_shape: ShapeSpec):
+    bottom_up = build_effnet_backbone(cfg, input_shape)
+    in_features = cfg.MODEL.FPN.IN_FEATURES
+    out_channels = cfg.MODEL.FPN.OUT_CHANNELS
+    # top_levels = cfg.MODEL.FCOS.TOP_LEVELS
+
+    backbone = FPN(
+        bottom_up=bottom_up,
+        in_features=in_features,
+        out_channels=out_channels,
+        norm=cfg.MODEL.FPN.NORM,
+        top_block=LastLevelMaxPool(),
+        fuse_type=cfg.MODEL.FPN.FUSE_TYPE,
+    )
+    return backbone
