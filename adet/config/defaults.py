@@ -250,7 +250,7 @@ _C.MODEL.BiFPN.NORM = ""
 _C.MODEL.EffNet = CN()
 
 # for detectron
-_C_MODEL_EffNet.OUT_FEATURES = ["s3", "s4", "s5", "s6", "s7"]
+_C.MODEL.EffNet.OUT_FEATURES = ["s3", "s4", "s5", "s6", "s7"]
 
 # FROM PYCLS CONFIG FILE
 
