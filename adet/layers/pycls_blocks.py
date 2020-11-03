@@ -10,7 +10,8 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from pycls.core.config import cfg
+# from pycls.core.config import cfg
+from adet.layers.pycls_blocks import cfg
 from torch.nn import Module
 
 
@@ -26,7 +27,7 @@ def conv2d(w_in, w_out, k, *, stride=1, groups=1, bias=False):
 
 def norm2d(w_in):
     """Helper for building a norm2d layer."""
-    return nn.BatchNorm2d(num_features=w_in, eps=cfg.BN.EPS, momentum=cfg.BN.MOM)
+    return nn.BatchNorm2d(num_features=w_in, eps=cfg.MODEL.EffNet.BN_EPS, momentum=cfg.MODEL.EffNet.BN_MOM)
 
 
 def pool2d(_w_in, k, *, stride=1):
@@ -47,9 +48,9 @@ def linear(w_in, w_out, *, bias=False):
 
 def activation():
     """Helper for building an activation layer."""
-    activation_fun = cfg.MODEL.ACTIVATION_FUN.lower()
+    activation_fun = cfg.MODEL.EffNet.MODEL_ACTIVATION_FUN.lower()
     if activation_fun == "relu":
-        return nn.ReLU(inplace=cfg.MODEL.ACTIVATION_INPLACE)
+        return nn.ReLU(inplace=cfg.MODEL.EffNet.MODEL_ACTIVATION_INPLACE)
     elif activation_fun == "silu" or activation_fun == "swish":
         try:
             return torch.nn.SiLU()
@@ -168,7 +169,7 @@ def init_weights(m):
         fan_out = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
         m.weight.data.normal_(mean=0.0, std=np.sqrt(2.0 / fan_out))
     elif isinstance(m, nn.BatchNorm2d):
-        zero_init_gamma = cfg.BN.ZERO_INIT_FINAL_GAMMA
+        zero_init_gamma = cfg.MODEL.EffNet.BN_ZERO_INIT_FINAL_GAMMA
         zero_init_gamma = hasattr(m, "final_bn") and m.final_bn and zero_init_gamma
         m.weight.data.fill_(0.0 if zero_init_gamma else 1.0)
         m.bias.data.zero_()

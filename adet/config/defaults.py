@@ -256,30 +256,28 @@ _C_MODEL_EffNet.OUT_FEATURES = ["s3", "s4", "s5", "s6", "s7"]
 
 # Stem width
 _C.MODEL.EffNet.STEM_W = 32
-
 # Depth for each stage (number of blocks in the stage)
 _C.MODEL.EffNet.DEPTHS = []
-
 # Width for each stage (width of each block in the stage)
 _C.MODEL.EffNet.WIDTHS = []
-
 # Expansion ratios for MBConv blocks in each stage
 _C.MODEL.EffNet.EXP_RATIOS = []
-
 # Squeeze-and-Excitation (SE) ratio
 _C.MODEL.EffNet.SE_R = 0.25
-
 # Strides for each stage (applies to the first block of each stage)
 _C.MODEL.EffNet.STRIDES = []
-
 # Kernel sizes for each stage
 _C.MODEL.EffNet.KERNELS = []
-
 # Head width
 _C.MODEL.EffNet.HEAD_W = 1280
-
 # Drop connect ratio
 _C.MODEL.EffNet.DC_RATIO = 0.0
-
 # Dropout ratio
 _C.MODEL.EffNet.DROPOUT_RATIO = 0.0
+
+# For pycls_blocks.py
+_C.MODEL.EffNet.BN_EPS = 1e-5
+_C.MODEL.EffNet.BN_MOM = 0.1
+_C.MODEL.EffNet.MODEL_ACTIVATION_INPLACE = True
+_C.MODEL.EffNet.MODEL_ACTIVATION_FUN = "relu"
+_C.MODEL.EffNet.BN_ZERO_INIT_FINAL_GAMMA = False
