@@ -28,6 +28,7 @@ from torch.nn import Dropout, Module
 from detectron2.modeling.backbone import Backbone
 from detectron2.modeling.backbone.build import BACKBONE_REGISTRY
 from detectron2.modeling.backbone.fpn import FPN
+from detectron2.layers import ShapeSpec
 from .fpn import LastLevelP6, LastLevelP6P7
 
 from adet.layers.pycls_blocks import (
