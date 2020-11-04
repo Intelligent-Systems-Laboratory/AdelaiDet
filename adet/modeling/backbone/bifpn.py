@@ -7,6 +7,7 @@ from detectron2.layers import Conv2d, ShapeSpec, get_norm
 from detectron2.modeling.backbone import Backbone, build_resnet_backbone
 from detectron2.modeling import BACKBONE_REGISTRY
 from .mobilenet import build_mnv2_backbone
+from .effnet import build_effnet_backbone
 
 __all__ = []
 
@@ -381,6 +382,32 @@ def build_fcos_resnet_bifpn_backbone(cfg, input_shape: ShapeSpec):
         bottom_up = build_mnv2_backbone(cfg, input_shape)
     else:
         bottom_up = build_resnet_backbone(cfg, input_shape)
+    in_features = cfg.MODEL.BiFPN.IN_FEATURES
+    out_channels = cfg.MODEL.BiFPN.OUT_CHANNELS
+    num_repeats = cfg.MODEL.BiFPN.NUM_REPEATS
+    top_levels = cfg.MODEL.FCOS.TOP_LEVELS
+
+    backbone = BiFPN(
+        bottom_up=bottom_up,
+        in_features=in_features,
+        out_channels=out_channels,
+        num_top_levels=top_levels,
+        num_repeats=num_repeats,
+        norm=cfg.MODEL.BiFPN.NORM
+    )
+    return 
+    
+
+@BACKBONE_REGISTRY.register()
+def build_fcos_effnet_bifpn_backbone(cfg, input_shape: ShapeSpec):
+    """
+    Args:
+        cfg: a detectron2 CfgNode
+
+    Returns:
+        backbone (Backbone): backbone module, must be a subclass of :class:`Backbone`.
+    """
+    bottom_up = build
     in_features = cfg.MODEL.BiFPN.IN_FEATURES
     out_channels = cfg.MODEL.BiFPN.OUT_CHANNELS
     num_repeats = cfg.MODEL.BiFPN.NUM_REPEATS

@@ -243,3 +243,155 @@ _C.MODEL.BiFPN.NUM_REPEATS = 6
 
 # Options: "" (no norm), "GN"
 _C.MODEL.BiFPN.NORM = ""
+
+
+# Model type
+#_C.MODEL.TYPE = ""
+#
+## Number of weight layers
+#_C.MODEL.DEPTH = 0
+#
+## Number of classes
+#_C.MODEL.NUM_CLASSES = 10
+
+# Loss function (see pycls/models/loss.py for options)
+#_C.MODEL.LOSS_FUN = "cross_entropy"
+
+# Activation function (relu or silu/swish)
+
+
+
+
+
+
+# ------------------------------- EfficientNet options ------------------------------- #
+_C.MODEL.EN = CfgNode()
+
+# Stem width
+_C.MODEL.EN.STEM_W = 32
+
+# Depth for each stage (number of blocks in the stage)
+_C.MODEL.EN.DEPTHS = []
+
+# Width for each stage (width of each block in the stage)
+_C.MODEL.EN.WIDTHS = []
+
+# Expansion ratios for MBConv blocks in each stage
+_C.MODEL.EN.EXP_RATIOS = []
+
+# Squeeze-and-Excitation (SE) ratio
+_C.MODEL.EN.SE_R = 0.25
+
+# Strides for each stage (applies to the first block of each stage)
+_C.MODEL.EN.STRIDES = []
+
+# Kernel sizes for each stage
+_C.MODEL.EN.KERNELS = []
+
+# Head width
+_C.MODEL.EN.HEAD_W = 1280
+
+# Drop connect ratio
+_C.MODEL.EN.DC_RATIO = 0.0
+
+# Dropout ratio
+_C.MODEL.EN.DROPOUT_RATIO = 0.0
+
+_C.MODEL.EN.ACTIVATION_FUN = "relu"
+# Perform activation inplace if implemented
+_C.MODEL.EN.ACTIVATION_INPLACE = True
+# -------------------------------- Batch norm options -------------------------------- #
+_C.MODEL.BN = CfgNode()
+
+# BN epsilon
+_C.MODEL.BN.EPS = 1e-5
+
+# BN momentum (BN momentum in PyTorch = 1 - BN momentum in Caffe2)
+_C.MODEL.BN.MOM = 0.1
+
+# Precise BN stats
+_C.MODEL.BN.USE_PRECISE_STATS = True
+_C.MODEL.BN.NUM_SAMPLES_PRECISE = 8192
+
+# Initialize the gamma of the final BN of each block to zero
+_C.MODEL.BN.ZERO_INIT_FINAL_GAMMA = False
+
+# Use a different weight decay for BN layers
+_C.MODEL.BN.USE_CUSTOM_WEIGHT_DECAY = False
+_C.MODEL.BN.CUSTOM_WEIGHT_DECAY = 0.0
+
+
+## -------------------------------- Optimizer options --------------------------------- #
+#_C.OPTIM = CfgNode()
+#
+## Learning rate ranges from BASE_LR to MIN_LR*BASE_LR according to the LR_POLICY
+#_C.OPTIM.BASE_LR = 0.1
+#_C.OPTIM.MIN_LR = 0.0
+#
+## Learning rate policy select from {'cos', 'exp', 'lin', 'steps'}
+#_C.OPTIM.LR_POLICY = "cos"
+#
+# Steps for 'steps' policy (in epochs)
+#_C.OPTIM.STEPS = []
+## Learning rate multiplier for 'steps' policy
+#_C.OPTIM.LR_MULT = 0.1
+## Maximal number of epochs
+#_C.OPTIM.MAX_EPOCH = 200
+## Momentum
+#_C.OPTIM.MOMENTUM = 0.9
+## Momentum dampening
+#_C.OPTIM.DAMPENING = 0.0
+## Nesterov momentum
+#_C.OPTIM.NESTEROV = True
+## L2 regularization
+#_C.OPTIM.WEIGHT_DECAY = 5e-4
+## Start the warm up from OPTIM.BASE_LR * OPTIM.WARMUP_FACTOR
+#_C.OPTIM.WARMUP_FACTOR = 0.1
+## Gradually warm up the OPTIM.BASE_LR over this number of epochs
+#_C.OPTIM.WARMUP_EPOCHS = 0
+
+
+# --------------------------------- Training options --------------------------------- #
+#_C.TRAIN = CfgNode()
+## Dataset and split
+#_C.TRAIN.DATASET = ""
+#_C.TRAIN.SPLIT = "train"
+## Total mini-batch size
+#_C.TRAIN.BATCH_SIZE = 128
+## Image size
+#_C.TRAIN.IM_SIZE = 224
+## Evaluate model on test data every eval period epochs
+#_C.TRAIN.EVAL_PERIOD = 1
+## Save model checkpoint every checkpoint period epochs
+#_C.TRAIN.CHECKPOINT_PERIOD = 1
+## Resume training from the latest checkpoint in the output directory
+#_C.TRAIN.AUTO_RESUME = True
+## Weights to start training from
+#_C.TRAIN.WEIGHTS = ""
+#
+
+# --------------------------------- Testing options ---------------------------------- #
+#_C.TEST = CfgNode()
+## Dataset and split
+#_C.TEST.DATASET = ""
+#_C.TEST.SPLIT = "val"
+## Total mini-batch size
+#_C.TEST.BATCH_SIZE = 200
+## Image size
+#_C.TEST.IM_SIZE = 256
+## Weights to use for testing
+#_C.TEST.WEIGHTS = ""
+
+
+## ------------------------------- Data loader options -------------------------------- #
+#_C.DATA_LOADER = CfgNode()
+## Number of data loader workers per process
+#_C.DATA_LOADER.NUM_WORKERS = 8
+## Load data to pinned host memory
+#_C.DATA_LOADER.PIN_MEMORY = True
+
+
+# ---------------------------------- CUDNN options ----------------------------------- #
+#_C.CUDNN = CfgNode()
+## Perform benchmarking to select fastest CUDNN algorithms (best for fixed input sizes)
+#_C.CUDNN.BENCHMARK = True
