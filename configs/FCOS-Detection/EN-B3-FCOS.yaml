@@ -3,6 +3,7 @@ MODEL:
   WEIGHTS: ""
   BACKBONE:
     NAME: "build_fcos_effnet_bifpn_backbone"
+    FREEZE_AT: 8
   #RESNETS:
   #  OUT_FEATURES: ["res3", "res4", "res5"]
   #FPN:
@@ -17,6 +18,7 @@ MODEL:
     HEAD_W: 
     ACTIVATION_FUN: silu
     OUT_FEATURES: ['s3','s4','s5','s6','s7']
+    WEIGHTS: "EN-B3.pth"
   BiFPN:
     IN_FEATURES: ['s3','s4','s5','s6','s7']
     OUT_CHANNELS: 160
@@ -30,13 +32,15 @@ DATASETS:
   TRAIN: ("coco_2017_train",)
   TEST: ("coco_2017_val",)
 SOLVER:
-  IMS_PER_BATCH: 4
+  IMS_PER_BATCH: 16
   BASE_LR: 0.01  # Note that RetinaNet uses a different default learning rate
   STEPS: (60000, 80000)
   MAX_ITER: 90000
 INPUT:
   MIN_SIZE_TRAIN: (640, 672, 704, 736, 768, 800)
-OUTPUT_DIR: output/EN-B3-FCOS
+  #MIN_SIZE_TRAIN: (896,)
+  #MIN_SIZE_TEST: (896,)
+OUTPUT_DIR: output/EN-B3-FCOS-2
 
 
 

@@ -6,10 +6,12 @@
 # LICENSE file in the root directory of this source tree.
 
 """EfficientNet models."""
+import torch
 from torch import nn
 from torch.nn import BatchNorm2d
 #from detectron2.layers.batch_norm import NaiveSyncBatchNorm as BatchNorm2d
 from detectron2.layers import Conv2d
+from detectron2.layers import FrozenBatchNorm2d
 from detectron2.modeling.backbone.build import BACKBONE_REGISTRY
 from detectron2.modeling.backbone import Backbone
 
@@ -170,18 +172,35 @@ class EffNet(Backbone):
     def __init__(self, cfg, params=None):
         super(EffNet, self).__init__()
         self.cfg = cfg
+        freeze_at = cfg.MODEL.BACKBONE.FREEZE_AT
         p = EffNet.get_params(cfg) if not params else params
         vs = ["sw", "ds", "ws", "exp_rs", "se_r", "ss", "ks", "hw", "nc"]
         sw, ds, ws, exp_rs, se_r, ss, ks, hw, nc = [p[v] for v in vs]
         stage_params = list(zip(ds, ws, exp_rs, ss, ks))
         self.stem = StemIN(cfg, 3, sw)
+        if freeze_at >= 1:
+            for p in self.stem.parameters():
+                p.requires_grad = False
+            self.stem = FrozenBatchNorm2d.convert_frozen_batchnorm(self.stem)
         prev_w = sw
         for i, (d, w, exp_r, stride, k) in enumerate(stage_params):
             stage = EffStage(cfg, prev_w, exp_r, k, stride, se_r, w, d)
+            #if freeze_at >= stage_idx:
+            #for block in stage:
+            #    block.freeze()
+            if freeze_at >= i:
+                for p in stage.parameters():
+                    p.requires_grad = False
             self.add_module("s{}".format(i + 1), stage)
             prev_w = w
         #self.head = EffHead(prev_w, hw, nc)
-        self.apply(init_weights)
+        weights_path = cfg.MODEL.EN.WEIGHTS
+        if cfg.MODEL.EN.WEIGHTS:
+            state_dict = torch.load(weights_path)
+            self.load_state_dict(state_dict, strict=False)
+        else:
+            self.apply(init_weights)
+        
 
     def forward(self, x):
         #out_stage = ['s3','s4','s5','s6','s7'] 

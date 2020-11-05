@@ -301,6 +301,8 @@ _C.MODEL.EN.DROPOUT_RATIO = 0.0
 
 _C.MODEL.EN.OUT_FEATURES = ['s3','s4','s5','s6','s7']
 
+_C.MODEL.EN.WEIGHTS = ""
+
 _C.MODEL.EN.ACTIVATION_FUN = "relu"
 # Perform activation inplace if implemented
 _C.MODEL.EN.ACTIVATION_INPLACE = True
