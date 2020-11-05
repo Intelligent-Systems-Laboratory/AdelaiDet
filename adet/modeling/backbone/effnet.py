@@ -67,6 +67,7 @@ class MBConv(Module):
         # Expansion, kxk dwise, BN, AF, SE, 1x1, BN, skip_connection
         super(MBConv, self).__init__()
         self.exp = None
+        self.cfg = cfg
         w_exp = int(w_in * exp_r)
         if w_exp != w_in:
             self.exp = conv2d(w_in, w_exp, 1)
@@ -86,7 +87,7 @@ class MBConv(Module):
         f_x = self.se(f_x)
         f_x = self.lin_proj_bn(self.lin_proj(f_x))
         if self.has_skip:
-            if self.training and cfg.MODEL.EN.DC_RATIO > 0.0:
+            if self.training and self.cfg.MODEL.EN.DC_RATIO > 0.0:
                 f_x = drop_connect(f_x, cfg.MODEL.EN.DC_RATIO)
             f_x = x + f_x
         return f_x
@@ -131,7 +132,7 @@ class EffStage(Module):
 class StemIN(Module):
     """EfficientNet stem for ImageNet: 3x3, BN, AF."""
 
-    def __init__(self, w_in, w_out):
+    def __init__(self, cfg, w_in, w_out):
         super(StemIN, self).__init__()
         self.conv = conv2d(w_in, w_out, 3, stride=2)
         self.bn = norm2d(cfg, w_out)
@@ -163,23 +164,24 @@ class EffNet(Backbone):
             "ss": cfg.MODEL.EN.STRIDES,
             "ks": cfg.MODEL.EN.KERNELS,
             "hw": cfg.MODEL.EN.HEAD_W,
-            "nc": cfg.MODEL.NUM_CLASSES,
+            "nc": cfg.MODEL.EN.NUM_CLASSES,
         }
 
     def __init__(self, cfg, params=None):
         super(EffNet, self).__init__()
+        self.cfg = cfg
         p = EffNet.get_params(cfg) if not params else params
         vs = ["sw", "ds", "ws", "exp_rs", "se_r", "ss", "ks", "hw", "nc"]
         sw, ds, ws, exp_rs, se_r, ss, ks, hw, nc = [p[v] for v in vs]
         stage_params = list(zip(ds, ws, exp_rs, ss, ks))
-        self.stem = StemIN(3, sw)
+        self.stem = StemIN(cfg, 3, sw)
         prev_w = sw
         for i, (d, w, exp_r, stride, k) in enumerate(stage_params):
             stage = EffStage(cfg, prev_w, exp_r, k, stride, se_r, w, d)
             self.add_module("s{}".format(i + 1), stage)
             prev_w = w
         #self.head = EffHead(prev_w, hw, nc)
-        self.apply(init_weights(cfg=cfg))
+        self.apply(init_weights)
 
     def forward(self, x):
         #out_stage = ['s3','s4','s5','s6','s7'] 
@@ -218,9 +220,13 @@ def build_effnet_backbone(cfg, input_shape):
 
     #out_feature_channels = {"res2": 24, "res3": 32,
     #                        "res4": 96, "res5": 320}
+    #  WIDTHS: [24, 32, 48, 96, 136, 232, 384]
+    out_feature_channels = {"s3": 48, "s4": 96, "s5": 136, "s6": 232, "s7": 384}
     #out_feature_strides = {"res2": 4, "res3": 8, "res4": 16, "res5": 32}
+    out_feature_strides = {"s3": 4, "s4": 8, "s5": 8, "s6": 16, "s7": 16}
+    
     model = EffNet(cfg)
     model._out_features = out_features
-    #model._out_feature_channels = out_feature_channels
-    #model._out_feature_strides = out_feature_strides
+    model._out_feature_channels = out_feature_channels
+    model._out_feature_strides = out_feature_strides
     return model

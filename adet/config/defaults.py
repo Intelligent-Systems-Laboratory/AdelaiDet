@@ -252,7 +252,7 @@ _C.MODEL.BiFPN.NORM = ""
 #_C.MODEL.DEPTH = 0
 #
 ## Number of classes
-#_C.MODEL.NUM_CLASSES = 10
+
 
 # Loss function (see pycls/models/loss.py for options)
 #_C.MODEL.LOSS_FUN = "cross_entropy"
@@ -265,7 +265,9 @@ _C.MODEL.BiFPN.NORM = ""
 
 
 # ------------------------------- EfficientNet options ------------------------------- #
-_C.MODEL.EN = CfgNode()
+_C.MODEL.EN = CN()
+
+_C.MODEL.EN.NUM_CLASSES = 10
 
 # Stem width
 _C.MODEL.EN.STEM_W = 32
@@ -297,11 +299,13 @@ _C.MODEL.EN.DC_RATIO = 0.0
 # Dropout ratio
 _C.MODEL.EN.DROPOUT_RATIO = 0.0
 
+_C.MODEL.EN.OUT_FEATURES = ['s3','s4','s5','s6','s7']
+
 _C.MODEL.EN.ACTIVATION_FUN = "relu"
 # Perform activation inplace if implemented
 _C.MODEL.EN.ACTIVATION_INPLACE = True
 # -------------------------------- Batch norm options -------------------------------- #
-_C.MODEL.BN = CfgNode()
+_C.MODEL.BN = CN()
 
 # BN epsilon
 _C.MODEL.BN.EPS = 1e-5

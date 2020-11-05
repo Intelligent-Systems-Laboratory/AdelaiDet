@@ -407,7 +407,7 @@ def build_fcos_effnet_bifpn_backbone(cfg, input_shape: ShapeSpec):
     Returns:
         backbone (Backbone): backbone module, must be a subclass of :class:`Backbone`.
     """
-    bottom_up = build
+    bottom_up = build_effnet_backbone(cfg, input_shape)
     in_features = cfg.MODEL.BiFPN.IN_FEATURES
     out_channels = cfg.MODEL.BiFPN.OUT_CHANNELS
     num_repeats = cfg.MODEL.BiFPN.NUM_REPEATS
