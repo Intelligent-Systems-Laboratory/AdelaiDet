@@ -52,7 +52,7 @@ class EffHead(Module):
 
     def __init__(self, cfg, w_in, w_out, num_classes):
         super(EffHead, self).__init__()
-        dropout_ratio = MODEL.EffNet.DROPOUT_RATIO
+        dropout_ratio = cfg.MODEL.EffNet.DROPOUT_RATIO
         self.conv = conv2d(w_in, w_out, 1)
         self.conv_bn = norm2d(w_out)
         self.conv_af = activation()
