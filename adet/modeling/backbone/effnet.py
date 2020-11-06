@@ -50,9 +50,9 @@ from adet.layers.pycls_blocks import (
 class EffHead(Module):
     """EfficientNet head: 1x1, BN, AF, AvgPool, Dropout, FC."""
 
-    def __init__(self, w_in, w_out, num_classes):
+    def __init__(self, cfg, w_in, w_out, num_classes):
         super(EffHead, self).__init__()
-        dropout_ratio = cfg.EN.DROPOUT_RATIO
+        dropout_ratio = MODEL.EffNet.DROPOUT_RATIO
         self.conv = conv2d(w_in, w_out, 1)
         self.conv_bn = norm2d(w_out)
         self.conv_af = activation()
@@ -103,8 +103,8 @@ class MBConv(Module):
         f_x = self.se(f_x)
         f_x = self.lin_proj_bn(self.lin_proj(f_x))
         if self.has_skip:
-            if self.training and cfg.EN.DC_RATIO > 0.0:
-                f_x = drop_connect(f_x, cfg.EN.DC_RATIO)
+            if self.training and cfg.MODEL.EffNet.DC_RATIO > 0.0:
+                f_x = drop_connect(f_x, cfg.MODEL.EffNet.DC_RATIO)
             f_x = x + f_x
         return f_x
 
