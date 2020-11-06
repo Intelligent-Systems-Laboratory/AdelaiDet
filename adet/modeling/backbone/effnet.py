@@ -47,7 +47,7 @@ from adet.layers.pycls_blocks import (
 )
 
 
-class EffHead(Module):
+class EffHead(Backbone):
     """EfficientNet head: 1x1, BN, AF, AvgPool, Dropout, FC."""
 
     def __init__(self, cfg, w_in, w_out, num_classes):
@@ -196,7 +196,7 @@ class EffNet(Backbone):
             stage = EffStage(prev_w, exp_r, k, stride, se_r, w, d)
             self.add_module("s{}".format(i + 1), stage)
             prev_w = w
-        self.head = EffHead(prev_w, hw, nc)
+        self.head = EffHead(cfg, prev_w, hw, nc)
         self.apply(init_weights)
 
     # def forward(self, x):
