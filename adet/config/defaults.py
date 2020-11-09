@@ -301,7 +301,18 @@ _C.MODEL.EN.DROPOUT_RATIO = 0.0
 
 _C.MODEL.EN.OUT_FEATURES = ['s3','s4','s5','s6','s7']
 
+#_C.MODEL.EN.OUT_FEATURE_STRIDES: {"s3": 4, "s4": 8, "s5": 8, "s6": 16, "s7": 16}
+
+_C.MODEL.EN.OUT_FEATURE_STRIDES = [4, 8, 8, 16, 16]
+
+#_C.MODEL.EN.OUT_FEATURE_CHANNELS: ["s3":48, "s4": 96, "s5": 136, "s6": 232, "s7": 384]
+_C.MODEL.EN.OUT_FEATURE_CHANNELS = [48, 96, 136, 232, 384]
+
 _C.MODEL.EN.WEIGHTS = ""
+
+_C.MODEL.EN.FREEZE_AT = 0
+
+_C.MODEL.EN.FROZEN_BN = 0
 
 _C.MODEL.EN.ACTIVATION_FUN = "relu"
 # Perform activation inplace if implemented
