@@ -139,16 +139,20 @@ class EffNet(Backbone):
         self._out_feature_channels = {"stem": self.stem.out_channels}
 
         prev_w = sw
-        self.stages_and_names = []    
+        self.stage_names, self.stages = [], []
         for i, (d, w, exp_r, stride, k) in enumerate(stage_params):
             stage = EffStage(prev_w, exp_r, k, stride, se_r, w, d, dc_ratio, norm, activation_fun)
             name = "s{}".format(i+1)
             self.add_module(name, stage)
-            self.stages_and_names.append((stage, name))
+            self.stage_names.append(name)
+            self.stages.append(stage)
             self._out_feature_channels[name] = w
             self._out_feature_strides[name] = stride
             prev_w = w
         
+        self.stage_names = tuple(self.stage_names) #static for scripting
+
+        self.num_classes = nc
         if nc is not None:
             self.head = EffHead(prev_w, hw,dropout_ratio, nc, norm, activation_fun)
         
@@ -164,11 +168,24 @@ class EffNet(Backbone):
         #initialiaze all weights
         self.apply(init_weights)
 
-
     def forward(self, x):
-        for module in self.children():
-            x = module(x)
-        return x
+        outputs = {}
+
+        x = self.stem(x)
+        if "stem" in self._out_features:
+            outputs["stem"] = x
+        
+        for name, stage in zip(self.stage_names, self.stages):
+            x = stage(x)
+            if name in self._out_features:
+                outputs[name] = x
+        
+        if self.num_classes is not None:
+            x = self.head(x)
+            outputs["head"] = x
+
+        return outputs
+
     
     def output_shape(self):
         return {

@@ -1,5 +1,6 @@
 _BASE_: "Base-EfficientDet.yaml"
 MODEL:
+  WEIGHTS: https://dl.fbaipublicfiles.com/pycls/dds_baselines/161305613/EN-B0_dds_8gpu.pyth
   EFFNET:
     STRIDES: [1, 2, 2, 2, 1, 2, 1]
     DEPTHS: [1, 2, 2, 3, 3, 4, 1]
@@ -11,3 +12,6 @@ MODEL:
     OUT_CHANNELS: 64
     NUM_REPEATS: 3
     NORM: "BN"
+INPUT:
+  MIN_SIZE_TRAIN: (512,)
+OUTPUT_DIR: output/Efficient/D0/
