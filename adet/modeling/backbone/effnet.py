@@ -177,26 +177,14 @@ class EffNet(Backbone):
         vs = ["sw", "ds", "ws", "exp_rs", "se_r", "ss", "ks", "hw", "nc"]
         sw, ds, ws, exp_rs, se_r, ss, ks, hw, nc = [p[v] for v in vs]
         stage_params = list(zip(ds, ws, exp_rs, ss, ks))
-        #self.stem = StemIN(cfg, 3, sw)
-        self.add_module("stem",StemIN(cfg, 3, sw))
-
-        #if freeze_at >= 1:
-        #    for p in self.stem.parameters():
-        #        p.requires_grad = False
-            #self.stem = FrozenBatchNorm2d.convert_frozen_batchnorm(self.stem)
+        self.stem = StemIN(cfg, 3, sw)
+        #self.add_module("stem",StemIN(cfg, 3, sw))
+        
         prev_w = sw
         for i, (d, w, exp_r, stride, k) in enumerate(stage_params):
             stage = EffStage(cfg, prev_w, exp_r, k, stride, se_r, w, d)
             self.add_module("s{}".format(i + 1), stage)
             prev_w = w
-            #if freeze_at >= stage_idx:
-            
-            #for block in stage:
-            #    block.freeze()
-            #if freeze_at >= i:
-            #    for p in stage.parameters():
-            #        p.requires_grad = False
-            
         #self.head = EffHead(prev_w, hw, nc)
         
         
@@ -236,14 +224,6 @@ def build_effnet_backbone(cfg, input_shape):
     """
     #out_features = cfg.MODEL.RESNETS.OUT_FEATURES
     out_features = cfg.MODEL.EN.OUT_FEATURES
-
-    #out_feature_channels = {"res2": 24, "res3": 32,
-    #                        "res4": 96, "res5": 320}
-    #  WIDTHS: [24, 32, 48, 96, 136, 232, 384]
-    #out_feature_channels = {"s3": 48, "s4": 96, "s5": 136, "s6": 232, "s7": 384}
-    #out_feature_strides = {"res2": 4, "res3": 8, "res4": 16, "res5": 32}
-    #out_feature_strides = {"s3": 4, "s4": 8, "s5": 8, "s6": 16, "s7": 16}
-    #out_feature_strides = {"s3": 4, "s4": 8, "s5": 16, "s6": 32, "s7": 64}
     out_feature_strides = cfg.MODEL.EN.OUT_FEATURE_STRIDES
     out_feature_channels = cfg.MODEL.EN.OUT_FEATURE_CHANNELS
     
