@@ -25,7 +25,7 @@ from torch.nn import Dropout, Module
 
 # Modifications for Detectron2/AdelaiDet
 from detectron2.modeling.backbone import Backbone
-from detectron2.modeling.layers import get_norm
+from detectron2.layers import get_norm, CNNBlockBase
 from detectron2.modeling.backbone.build import BACKBONE_REGISTRY
 from detectron2.modeling.backbone.fpn import FPN
 from detectron2.layers import ShapeSpec
@@ -41,11 +41,11 @@ from adet.layers.pycls_blocks import (
 )
 
 
-class EffHead(Bakbone):
+class EffHead(CNNBlockBase):
     """EfficientNet head: 1x1, BN, AF, AvgPool, Dropout, FC."""
 
     def __init__(self, w_in, w_out, dropout_ratio=0.0, num_classes=None, norm="BN", activation_fun="silu"):
-        super(EffHead, self).__init__()
+        super().__init__(w_in, w_out, 1)
         self.conv = conv2d(w_in, w_out, 1)
         self.conv_bn = get_norm(norm, w_out)
         self.conv_af = get_activation(activation_fun)
@@ -100,11 +100,11 @@ class MBConv(Module):
         return f_x
 
 
-class EffStage(Module):
+class EffStage(CNNBlockBase):
     """EfficientNet stage."""
 
     def __init__(self, w_in, exp_r, k, stride, se_r, w_out, d, DC_RATIO=0.0, norm="BN", activation_fun="silu"):
-        super(EffStage, self).__init__()
+        super().__init__(w_in,w_out,stride)
         for i in range(d):
             block = MBConv(w_in, exp_r, k, stride, se_r, w_out, DC_RATIO, norm, activation_fun)
             self.add_module("b{}".format(i + 1), block)
@@ -116,11 +116,11 @@ class EffStage(Module):
         return x
 
 
-class StemIN(Module):
+class StemIN(CNNBlockBase):
     """EfficientNet stem for ImageNet: 3x3, BN, AF."""
 
     def __init__(self, w_in, w_out, norm="BN", activation_fun="silu"):
-        super(StemIN, self).__init__()
+        super().__init__(w_in, w_out, 2)
         self.conv = conv2d(w_in, w_out, 3, stride=2)
         self.bn = get_norm(norm, w_out)
         self.af = get_activation(activation_fun)
@@ -140,18 +140,36 @@ class EffNet(Backbone):
         sw, ds, ws, exp_rs, se_r, ss, ks, hw, nc, dropout_ratio, dc_ratio, norm, activation_fun = [params[v] for v in vs]
         stage_params = list(zip(ds, ws, exp_rs, ss, ks))
         self.stem = StemIN(3, sw, dc_ratio, norm, activation_fun)
-        prev_w = sw
+
+        self._out_feature_strides = {"stem": self.stem.stride}
+        self._out_feature_channels = {"stem": self.stem.out_channels}
+
+        prev_w = sw    
         for i, (d, w, exp_r, stride, k) in enumerate(stage_params):
             stage = EffStage(prev_w, exp_r, k, stride, se_r, w, d, dc_ratio, norm, activation_fun)
-            self.add_module("s{}".format(i + 1), stage)
+            name = "s{}".format(i+1)
+            self.add_module(name, stage)
+            self._out_feature_channels[name] = w
+            self._out_feature_strides[name] = stride
             prev_w = w
+
         self.head = EffHead(prev_w, hw,dropout_ratio, nc, norm, activation_fun)
         self.apply(init_weights)
+
 
     def forward(self, x):
         for module in self.children():
             x = module(x)
         return x
+    
+    def output_shape(self):
+        return {
+            name: ShapeSpec(
+                channels=self._out_feature_channels[name], stride=self._out_feature_strides[name]
+            )
+            for name in self._out_features
+        }
+
 
 
 @BACKBONE_REGISTRY.register()
@@ -167,7 +185,7 @@ def build_effnet_backbone(cfg, input_shape: ShapeSpec):
         "hw": cfg.MODEL.EFFNET.HEAD_W,
         "dropout_ratio": cfg.MODEL.EFFNET.DROPOUT_RATIO,
         "norm": cfg.MODEL.EFFNET.NORM,
-        "activation_fun": cfg.MODEL.EFFNET.ACTIVATION_FUN
+        "activation_fun": cfg.MODEL.EFFNET.ACTIVATION_FUN,
         "nc": None
     }
     model = EffNet(params)
