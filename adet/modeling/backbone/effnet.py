@@ -55,8 +55,8 @@ class EffHead(Backbone):
         super(EffHead, self).__init__()
         dropout_ratio = cfg.MODEL.EffNet.DROPOUT_RATIO
         self.conv = conv2d(w_in, w_out, 1)
-        self.conv_bn = norm2d(w_out)
-        self.conv_af = activation()
+        self.conv_bn = norm2d(cfg, w_out)
+        self.conv_af = activation(cfg)
         self.avg_pool = gap2d(w_out)
         self.dropout = Dropout(p=dropout_ratio) if dropout_ratio > 0 else None
         self.fc = linear(w_out, num_classes, bias=True)
@@ -84,18 +84,19 @@ class MBConv(Module):
     def __init__(self, cfg, w_in, exp_r, k, stride, se_r, w_out):
         # Expansion, kxk dwise, BN, AF, SE, 1x1, BN, skip_connection
         super(MBConv, self).__init__()
+        self.cfg = cfg
         self.exp = None
         w_exp = int(w_in * exp_r)
         if w_exp != w_in:
             self.exp = conv2d(w_in, w_exp, 1)
-            self.exp_bn = norm2d(w_exp)
-            self.exp_af = activation()
+            self.exp_bn = norm2d(cfg, w_exp)
+            self.exp_af = activation(cfg)
         self.dwise = conv2d(w_exp, w_exp, k, stride=stride, groups=w_exp)
-        self.dwise_bn = norm2d(w_exp)
-        self.dwise_af = activation()
-        self.se = SE(w_exp, int(w_in * se_r))
+        self.dwise_bn = norm2d(cfg, w_exp)
+        self.dwise_af = activation(cfg)
+        self.se = SE(cfg, w_exp, int(w_in * se_r))
         self.lin_proj = conv2d(w_exp, w_out, 1)
-        self.lin_proj_bn = norm2d(w_out)
+        self.lin_proj_bn = norm2d(cfg, w_out)
         self.has_skip = stride == 1 and w_in == w_out
 
     def forward(self, x):
@@ -104,8 +105,8 @@ class MBConv(Module):
         f_x = self.se(f_x)
         f_x = self.lin_proj_bn(self.lin_proj(f_x))
         if self.has_skip:
-            if self.training and cfg.MODEL.EffNet.DC_RATIO > 0.0:
-                f_x = drop_connect(f_x, cfg.MODEL.EffNet.DC_RATIO)
+            if self.training and self.cfg.MODEL.EffNet.DC_RATIO > 0.0:
+                f_x = drop_connect(f_x, self.cfg.MODEL.EffNet.DC_RATIO)
             f_x = x + f_x
         return f_x
 
@@ -116,10 +117,10 @@ class MBConv(Module):
             cx = conv2d_cx(cx, w_in, w_exp, 1)
             cx = norm2d_cx(cx, w_exp)
         cx = conv2d_cx(cx, w_exp, w_exp, k, stride=stride, groups=w_exp)
-        cx = norm2d_cx(cx, w_exp)
+        cx = norm2d_cx(cfg, cx, w_exp)
         cx = SE.complexity(cx, w_exp, int(w_in * se_r))
         cx = conv2d_cx(cx, w_exp, w_out, 1)
-        cx = norm2d_cx(cx, w_out)
+        cx = norm2d_cx(cfg, cx, w_out)
         return cx
 
 
@@ -152,8 +153,8 @@ class StemIN(Module):
     def __init__(self, cfg, w_in, w_out):
         super(StemIN, self).__init__()
         self.conv = conv2d(w_in, w_out, 3, stride=2)
-        self.bn = norm2d(w_out)
-        self.af = activation()
+        self.bn = norm2d(cfg, w_out)
+        self.af = activation(cfg)
 
     def forward(self, x):
         for layer in self.children():
@@ -163,7 +164,7 @@ class StemIN(Module):
     @staticmethod
     def complexity(cx, w_in, w_out):
         cx = conv2d_cx(cx, w_in, w_out, 3, stride=2)
-        cx = norm2d_cx(cx, w_out)
+        cx = norm2d_cx(cfg, cx, w_out)
         return cx
 
 
@@ -271,4 +272,22 @@ def build_effnet_fpn_backbone(cfg, input_shape: ShapeSpec):
     )
     return backbone
 
+@BACKBONE_REGISTRY.register()
+def build_effnet_bifpn_backbone(cfg, input_shape: ShapeSpec):
+    bottom_up = build_effnet_backbone(cfg, input_shape)
 
+    in_features = cfg.MODEL.BiFPN.IN_FEATURES
+    out_channels = cfg.MODEL.BiFPN.OUT_CHANNELS
+    num_repeats = cfg.MODEL.BiFPN.NUM_REPEATS
+    top_levels = 0
+
+    backbone = BiFPN(
+        bottom_up=bottom_up,
+        in_features=in_features,
+        out_channels=out_channels,
+        num_top_levels=top_levels,
+        num_repeats=num_repeats,
+        norm=cfg.MODEL.BiFPN.NORM
+    )
+
+    return backbone

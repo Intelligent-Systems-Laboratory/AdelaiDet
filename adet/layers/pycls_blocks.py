@@ -16,7 +16,6 @@ from torch.nn import Module
 
 
 # ----------------------- Shortcuts for common torch.nn layers ----------------------- #
-cfg = get_cfg()
 
 def conv2d(w_in, w_out, k, *, stride=1, groups=1, bias=False):
     """Helper for building a conv2d layer."""
@@ -25,7 +24,7 @@ def conv2d(w_in, w_out, k, *, stride=1, groups=1, bias=False):
     return nn.Conv2d(w_in, w_out, k, stride=s, padding=p, groups=g, bias=b)
 
 
-def norm2d(w_in):
+def norm2d(cfg, w_in):
     """Helper for building a norm2d layer."""
     return nn.BatchNorm2d(num_features=w_in, eps=cfg.MODEL.EffNet.BN_EPS, momentum=cfg.MODEL.EffNet.BN_MOM)
 
@@ -46,7 +45,7 @@ def linear(w_in, w_out, *, bias=False):
     return nn.Linear(w_in, w_out, bias=bias)
 
 
-def activation():
+def activation(cfg):
     """Helper for building an activation layer."""
     activation_fun = cfg.MODEL.EffNet.MODEL_ACTIVATION_FUN.lower()
     if activation_fun == "relu":
@@ -123,12 +122,12 @@ class SiLU(Module):
 class SE(Module):
     """Squeeze-and-Excitation (SE) block: AvgPool, FC, Act, FC, Sigmoid."""
 
-    def __init__(self, w_in, w_se):
+    def __init__(self, cfg, w_in, w_se):
         super(SE, self).__init__()
         self.avg_pool = gap2d(w_in)
         self.f_ex = nn.Sequential(
             conv2d(w_in, w_se, 1, bias=True),
-            activation(),
+            activation(cfg),
             conv2d(w_se, w_in, 1, bias=True),
             nn.Sigmoid(),
         )
@@ -162,7 +161,7 @@ def adjust_block_compatibility(ws, bs, gs):
     return ws, bs, gs
 
 
-def init_weights(m):
+def init_weights(cfg, m):
     """Performs ResNet-style weight initialization."""
     if isinstance(m, nn.Conv2d):
         # Note that there is no bias due to BN
