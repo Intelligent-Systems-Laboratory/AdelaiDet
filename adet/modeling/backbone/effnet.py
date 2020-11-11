@@ -30,6 +30,7 @@ from detectron2.modeling.backbone.build import BACKBONE_REGISTRY
 from detectron2.modeling.backbone.fpn import FPN
 from detectron2.layers import ShapeSpec
 from .fpn import LastLevelP6, LastLevelP6P7
+from .bifpn import BiFPN
 
 from adet.layers.pycls_blocks import (
     SE,
@@ -80,7 +81,7 @@ class EffHead(Backbone):
 class MBConv(Module):
     """Mobile inverted bottleneck block with SE."""
 
-    def __init__(self, w_in, exp_r, k, stride, se_r, w_out):
+    def __init__(self, cfg, w_in, exp_r, k, stride, se_r, w_out):
         # Expansion, kxk dwise, BN, AF, SE, 1x1, BN, skip_connection
         super(MBConv, self).__init__()
         self.exp = None
@@ -125,10 +126,10 @@ class MBConv(Module):
 class EffStage(Module):
     """EfficientNet stage."""
 
-    def __init__(self, w_in, exp_r, k, stride, se_r, w_out, d):
+    def __init__(self, cfg, w_in, exp_r, k, stride, se_r, w_out, d):
         super(EffStage, self).__init__()
         for i in range(d):
-            block = MBConv(w_in, exp_r, k, stride, se_r, w_out)
+            block = MBConv(cfg, w_in, exp_r, k, stride, se_r, w_out)
             self.add_module("b{}".format(i + 1), block)
             stride, w_in = 1, w_out
 
@@ -148,7 +149,7 @@ class EffStage(Module):
 class StemIN(Module):
     """EfficientNet stem for ImageNet: 3x3, BN, AF."""
 
-    def __init__(self, w_in, w_out):
+    def __init__(self, cfg, w_in, w_out):
         super(StemIN, self).__init__()
         self.conv = conv2d(w_in, w_out, 3, stride=2)
         self.bn = norm2d(w_out)
@@ -190,14 +191,14 @@ class EffNet(Backbone):
         vs = ["sw", "ds", "ws", "exp_rs", "se_r", "ss", "ks", "hw", "nc"]
         sw, ds, ws, exp_rs, se_r, ss, ks, hw, nc = [p[v] for v in vs]
         stage_params = list(zip(ds, ws, exp_rs, ss, ks))
-        self.stem = StemIN(3, sw)
+        self.stem = StemIN(cfg, 3, sw)
         prev_w = sw
         for i, (d, w, exp_r, stride, k) in enumerate(stage_params):
-            stage = EffStage(prev_w, exp_r, k, stride, se_r, w, d)
+            stage = EffStage(cfg, prev_w, exp_r, k, stride, se_r, w, d)
             self.add_module("s{}".format(i + 1), stage)
             prev_w = w
-        self.head = EffHead(cfg, prev_w, hw, nc)
-        self.apply(init_weights)
+        # self.head = EffHead(cfg, prev_w, hw, nc)
+        # self.apply(init_weights)
 
     # def forward(self, x):
     #     for module in self.children():
@@ -244,6 +245,11 @@ def build_effnet_backbone(cfg, input_shape: ShapeSpec):
         "nc": cfg.MODEL.FCOS.NUM_CLASSES, # Not used since EffHead is removed
     }
     model = EffNet(cfg, params)
+    model._out_features = cfg.MODEL.EffNet.OUT_FEATURES
+    model._out_feature_channels = dict(zip(cfg.MODEL.EffNet.OUT_FEATURES, cfg.MODEL.EffNet.OUT_FEATURE_CHANNELS))
+    model._out_feature_strides = dict(zip(cfg.MODEL.EffNet.OUT_FEATURES, cfg.MODEL.EffNet.OUT_FEATURE_STRIDES))
+    # model._out_feature_channels = {"s3": 48, "s4": 96, "s5": 136, "s6": 232, "s7": 384}
+    # model._out_feature_strides = {"s3": 4, "s4": 8, "s5": 16, "s6": 32, "s7": 64}
 
     return model
 
@@ -260,7 +266,9 @@ def build_effnet_fpn_backbone(cfg, input_shape: ShapeSpec):
         in_features=in_features,
         out_channels=out_channels,
         norm=cfg.MODEL.FPN.NORM,
-        top_block=LastLevelMaxPool(),
+        top_block=LastLevelP6P7(out_channels, out_channels, "p5"),
         fuse_type=cfg.MODEL.FPN.FUSE_TYPE,
     )
     return backbone
+
+

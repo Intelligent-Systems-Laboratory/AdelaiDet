@@ -251,6 +251,8 @@ _C.MODEL.EffNet = CN()
 
 # for detectron
 _C.MODEL.EffNet.OUT_FEATURES = ["s3", "s4", "s5", "s6", "s7"]
+_C.MODEL.EffNet.OUT_FEATURE_CHANNELS = [40, 80, 112, 192, 320]
+_C.MODEL.EffNet.OUT_FEATURE_STRIDES = [4, 8, 16, 32, 64]
 
 # FROM PYCLS CONFIG FILE
 
