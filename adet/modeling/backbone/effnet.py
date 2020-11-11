@@ -27,9 +27,7 @@ from torch.nn import Dropout, Module
 from detectron2.modeling.backbone import Backbone
 from detectron2.layers import get_norm, CNNBlockBase
 from detectron2.modeling.backbone.build import BACKBONE_REGISTRY
-from detectron2.modeling.backbone.fpn import FPN
 from detectron2.layers import ShapeSpec
-from .fpn import LastLevelP6, LastLevelP6P7
 from adet.layers.pycls_blocks import (
     SE,
     get_activation,
@@ -44,25 +42,21 @@ from adet.layers.pycls_blocks import (
 class EffHead(CNNBlockBase):
     """EfficientNet head: 1x1, BN, AF, AvgPool, Dropout, FC."""
 
-    def __init__(self, w_in, w_out, dropout_ratio=0.0, num_classes=None, norm="BN", activation_fun="silu"):
+    def __init__(self, w_in, w_out, num_classes, dropout_ratio=0.0, norm="BN", activation_fun="silu"):
         super().__init__(w_in, w_out, 1)
         self.conv = conv2d(w_in, w_out, 1)
         self.conv_bn = get_norm(norm, w_out)
         self.conv_af = get_activation(activation_fun)
-        self.num_classes = num_classes
-        if num_classes is not None:
-            self.avg_pool = gap2d(w_out)
-            self.dropout = Dropout(p=dropout_ratio) if dropout_ratio > 0 else None
-            self.fc = linear(w_out, num_classes, bias=True)
+        self.avg_pool = gap2d(w_out)
+        self.dropout = Dropout(p=dropout_ratio) if dropout_ratio > 0 else None
+        self.fc = linear(w_out, num_classes, bias=True)
 
     def forward(self, x):
         x = self.conv_af(self.conv_bn(self.conv(x)))
-
-        if self.num_classes is not None:
-            x = self.avg_pool(x)
-            x = x.view(x.size(0), -1)
-            x = self.dropout(x) if self.dropout else x
-            x = self.fc(x)
+        x = self.avg_pool(x)
+        x = x.view(x.size(0), -1)
+        x = self.dropout(x) if self.dropout else x
+        x = self.fc(x)
         
         return x
 
@@ -82,7 +76,7 @@ class MBConv(Module):
         self.dwise = conv2d(w_exp, w_exp, k, stride=stride, groups=w_exp)
         self.dwise_bn = get_norm(norm, w_exp)
         self.dwise_af = get_activation(activation_fun)
-        self.se = SE(w_exp, int(w_in * se_r))
+        self.se = SE(w_exp, int(w_in * se_r), activation_fun)
         self.lin_proj = conv2d(w_exp, w_out, 1)
         self.lin_proj_bn = get_norm(norm, w_out)
         self.has_skip = stride == 1 and w_in == w_out
@@ -134,26 +128,40 @@ class StemIN(CNNBlockBase):
 class EffNet(Backbone):
     """EfficientNet model."""
 
-    def __init__(self, params):
+    def __init__(self, params, out_features=None):
         super(EffNet, self).__init__()
         vs = ["sw", "ds", "ws", "exp_rs", "se_r", "ss", "ks", "hw", "nc", "dropout_ratio","dc_ratio","norm","activation_fun"]
         sw, ds, ws, exp_rs, se_r, ss, ks, hw, nc, dropout_ratio, dc_ratio, norm, activation_fun = [params[v] for v in vs]
         stage_params = list(zip(ds, ws, exp_rs, ss, ks))
-        self.stem = StemIN(3, sw, dc_ratio, norm, activation_fun)
+        self.stem = StemIN(3, sw, norm, activation_fun)
 
         self._out_feature_strides = {"stem": self.stem.stride}
         self._out_feature_channels = {"stem": self.stem.out_channels}
 
-        prev_w = sw    
+        prev_w = sw
+        self.stages_and_names = []    
         for i, (d, w, exp_r, stride, k) in enumerate(stage_params):
             stage = EffStage(prev_w, exp_r, k, stride, se_r, w, d, dc_ratio, norm, activation_fun)
             name = "s{}".format(i+1)
             self.add_module(name, stage)
+            self.stages_and_names.append((stage, name))
             self._out_feature_channels[name] = w
             self._out_feature_strides[name] = stride
             prev_w = w
+        
+        if nc is not None:
+            self.head = EffHead(prev_w, hw,dropout_ratio, nc, norm, activation_fun)
+        
+        # Name of final layer
+        if out_features is None:
+            self._out_features = [name]
+        self._out_features = out_features
+        assert len(self._out_features)
+        children = [x[0] for x in self.named_children()]
+        for out_feature in self._out_features:
+            assert out_feature in children, "Available children: {}".format(", ".join(children))
 
-        self.head = EffHead(prev_w, hw,dropout_ratio, nc, norm, activation_fun)
+        #initialiaze all weights
         self.apply(init_weights)
 
 
@@ -184,11 +192,14 @@ def build_effnet_backbone(cfg, input_shape: ShapeSpec):
         "ks": cfg.MODEL.EFFNET.KERNELS,
         "hw": cfg.MODEL.EFFNET.HEAD_W,
         "dropout_ratio": cfg.MODEL.EFFNET.DROPOUT_RATIO,
+        "dc_ratio": cfg.MODEL.EFFNET.DC_RATIO,
         "norm": cfg.MODEL.EFFNET.NORM,
         "activation_fun": cfg.MODEL.EFFNET.ACTIVATION_FUN,
         "nc": None
     }
-    model = EffNet(params)
+    
+    out_features = cfg.MODEL.EFFNET.OUT_FEATURES
+    model = EffNet(params, out_features)
     return model
 
 

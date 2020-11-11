@@ -3,10 +3,12 @@ import torch.nn.functional as F
 from torch import nn
 
 from detectron2.layers import Conv2d, ShapeSpec, get_norm
+from detectron2.modeling.backbone import Backbone, build_resnet_backbone
 
-from detectron2.modeling.backbone import Backbone, build_resnet_backbone, build_effnet_backbone
 from detectron2.modeling import BACKBONE_REGISTRY
 from .mobilenet import build_mnv2_backbone
+from .effnet import build_effnet_backbone
+
 
 __all__ = []
 

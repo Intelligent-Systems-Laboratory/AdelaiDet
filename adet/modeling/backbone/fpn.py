@@ -2,7 +2,7 @@ from torch import nn
 import torch.nn.functional as F
 import fvcore.nn.weight_init as weight_init
 
-from detectron2.modeling.backbone import FPN, LastLevelMaxPool, build_resnet_backbone
+from detectron2.modeling.backbone import FPN, build_resnet_backbone
 from detectron2.layers import ShapeSpec
 from detectron2.modeling.backbone.build import BACKBONE_REGISTRY
 
@@ -31,7 +31,21 @@ class LastLevelP6P7(nn.Module):
         p7 = self.p7(F.relu(p6))
         return [p6, p7]
 
+class LastLevelMaxPool(nn.Module):
+    """
+    This module is used in the original FPN to generate a downsampled
+    P6 feature from P5.
+    """
 
+    def __init__(self):
+        super().__init__()
+        self.num_levels = 1
+        self.in_feature = "p5"
+
+    def forward(self, x):
+        return [F.max_pool2d(x, kernel_size=1, stride=2, padding=0)]
+
+        
 class LastLevelP6(nn.Module):
     """
     This module is used in FCOS to generate extra layers

@@ -45,7 +45,7 @@ def linear(w_in, w_out, *, bias=False):
 
 def get_activation(activation_fun, activation_inplace=True):
     """Helper for building an activation layer."""
-    activation_fun = activation.lower()
+    activation_fun = activation_fun.lower()
     if activation_fun == "relu":
         return nn.ReLU(inplace=activation_inplace)
     elif activation_fun == "silu" or activation_fun == "swish":
@@ -120,12 +120,12 @@ class SiLU(nn.Module):
 class SE(nn.Module):
     """Squeeze-and-Excitation (SE) block: AvgPool, FC, Act, FC, Sigmoid."""
 
-    def __init__(self, w_in, w_se):
+    def __init__(self, w_in, w_se, activation_fun="silu"):
         super(SE, self).__init__()
         self.avg_pool = gap2d(w_in)
         self.f_ex = nn.Sequential(
             conv2d(w_in, w_se, 1, bias=True),
-            activation(),
+            get_activation(activation_fun),
             conv2d(w_se, w_in, 1, bias=True),
             nn.Sigmoid(),
         )
