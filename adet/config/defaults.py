@@ -76,6 +76,41 @@ _C.MODEL.DLA.OUT_FEATURES = ["stage2", "stage3", "stage4", "stage5"]
 _C.MODEL.DLA.NORM = "FrozenBN"
 
 # ---------------------------------------------------------------------------- #
+# EffNet backbone
+# ---------------------------------------------------------------------------- #
+_C.MODEL.EFFNET = CN()
+
+# for detectron
+_C.MODEL.EFFNET.OUT_FEATURES = ["s3", "s4", "s5", "s6", "s7"]
+
+# FROM PYCLS CONFIG FILE
+
+# Stem width
+_C.MODEL.EFFNET.STEM_W = 32
+# Depth for each stage (number of blocks in the stage)
+_C.MODEL.EFFNET.DEPTHS = []
+# Width for each stage (width of each block in the stage)
+_C.MODEL.EFFNET.WIDTHS = []
+# Expansion ratios for MBConv blocks in each stage
+_C.MODEL.EFFNET.EXP_RATIOS = []
+# Squeeze-and-Excitation (SE) ratio
+_C.MODEL.EFFNET.SE_R = 0.25
+# Strides for each stage (applies to the first block of each stage)
+_C.MODEL.EFFNET.STRIDES = []
+# Kernel sizes for each stage
+_C.MODEL.EFFNET.KERNELS = []
+# Head width
+_C.MODEL.EFFNET.HEAD_W = 1280
+# Drop connect ratio
+_C.MODEL.EFFNET.DC_RATIO = 0.0
+# Dropout ratio
+_C.MODEL.EFFNET.DROPOUT_RATIO = 0.0
+
+#TODO: Zero Initializing final batch norm hastens training but hurts performance for GN
+# _C.MODEL.EffNet.BN_ZERO_INIT_FINAL_GAMMA = False 
+
+
+# ---------------------------------------------------------------------------- #
 # BAText Options
 # ---------------------------------------------------------------------------- #
 _C.MODEL.BATEXT = CN()
