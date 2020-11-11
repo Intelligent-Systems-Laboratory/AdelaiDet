@@ -43,18 +43,18 @@ def linear(w_in, w_out, *, bias=False):
     return nn.Linear(w_in, w_out, bias=bias)
 
 
-# def activation(activation_fun, activation_inplace=True):
-#     """Helper for building an activation layer."""
-#     activation_fun = activation.lower()
-#     if activation_fun == "relu":
-#         return nn.ReLU(inplace=activation_inplace)
-#     elif activation_fun == "silu" or activation_fun == "swish":
-#         try:
-#             return torch.nn.SiLU()
-#         except AttributeError:
-#             return SiLU()
-#     else:
-#         raise AssertionError("Unknown MODEL.ACTIVATION_FUN: " + activation_fun)
+def get_activation(activation_fun, activation_inplace=True):
+    """Helper for building an activation layer."""
+    activation_fun = activation.lower()
+    if activation_fun == "relu":
+        return nn.ReLU(inplace=activation_inplace)
+    elif activation_fun == "silu" or activation_fun == "swish":
+        try:
+            return torch.nn.SiLU()
+        except AttributeError:
+            return SiLU()
+    else:
+        raise AssertionError("Unknown MODEL.ACTIVATION_FUN: " + activation_fun)
 
 
 # --------------------------- Complexity (cx) calculations --------------------------- #

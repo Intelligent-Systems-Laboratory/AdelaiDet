@@ -32,7 +32,7 @@ from detectron2.layers import ShapeSpec
 from .fpn import LastLevelP6, LastLevelP6P7
 from adet.layers.pycls_blocks import (
     SE,
-    SiLU,
+    get_activation,
     conv2d,
     drop_connect,
     gap2d,
@@ -44,11 +44,11 @@ from adet.layers.pycls_blocks import (
 class EffHead(Bakbone):
     """EfficientNet head: 1x1, BN, AF, AvgPool, Dropout, FC."""
 
-    def __init__(self, w_in, w_out, dropout_ratio=0.0, num_classes=None, norm="BN"):
+    def __init__(self, w_in, w_out, dropout_ratio=0.0, num_classes=None, norm="BN", activation_fun="silu"):
         super(EffHead, self).__init__()
         self.conv = conv2d(w_in, w_out, 1)
         self.conv_bn = get_norm(norm, w_out)
-        self.conv_af = SiLU()
+        self.conv_af = get_activation(activation_fun)
         self.num_classes = num_classes
         if num_classes is not None:
             self.avg_pool = gap2d(w_out)
@@ -70,7 +70,7 @@ class EffHead(Bakbone):
 class MBConv(Module):
     """Mobile inverted bottleneck block with SE."""
 
-    def __init__(self, w_in, exp_r, k, stride, se_r, w_out, DC_RATIO=0.0, norm="BN"):
+    def __init__(self, w_in, exp_r, k, stride, se_r, w_out, DC_RATIO=0.0, norm="BN", activation_fun="silu"):
         # Expansion, kxk dwise, BN, AF, SE, 1x1, BN, skip_connection
         super(MBConv, self).__init__()
         self.exp = None
@@ -78,10 +78,10 @@ class MBConv(Module):
         if w_exp != w_in:
             self.exp = conv2d(w_in, w_exp, 1)
             self.exp_bn = get_norm(norm, w_exp)
-            self.exp_af = SiLU()
+            self.exp_af = get_activation(activation_fun)
         self.dwise = conv2d(w_exp, w_exp, k, stride=stride, groups=w_exp)
         self.dwise_bn = get_norm(norm, w_exp)
-        self.dwise_af = SiLU()
+        self.dwise_af = get_activation(activation_fun)
         self.se = SE(w_exp, int(w_in * se_r))
         self.lin_proj = conv2d(w_exp, w_out, 1)
         self.lin_proj_bn = get_norm(norm, w_out)
@@ -103,10 +103,10 @@ class MBConv(Module):
 class EffStage(Module):
     """EfficientNet stage."""
 
-    def __init__(self, w_in, exp_r, k, stride, se_r, w_out, d, DC_RATIO=0.0, norm="BN"):
+    def __init__(self, w_in, exp_r, k, stride, se_r, w_out, d, DC_RATIO=0.0, norm="BN", activation_fun="silu"):
         super(EffStage, self).__init__()
         for i in range(d):
-            block = MBConv(w_in, exp_r, k, stride, se_r, w_out, DC_RATIO, norm)
+            block = MBConv(w_in, exp_r, k, stride, se_r, w_out, DC_RATIO, norm, activation_fun)
             self.add_module("b{}".format(i + 1), block)
             stride, w_in = 1, w_out
 
@@ -119,11 +119,11 @@ class EffStage(Module):
 class StemIN(Module):
     """EfficientNet stem for ImageNet: 3x3, BN, AF."""
 
-    def __init__(self, w_in, w_out, norm="BN"):
+    def __init__(self, w_in, w_out, norm="BN", activation_fun="silu"):
         super(StemIN, self).__init__()
         self.conv = conv2d(w_in, w_out, 3, stride=2)
         self.bn = get_norm(norm, w_out)
-        self.af = SiLU()
+        self.af = get_activation(activation_fun)
 
     def forward(self, x):
         for layer in self.children():
@@ -136,16 +136,16 @@ class EffNet(Backbone):
 
     def __init__(self, params):
         super(EffNet, self).__init__()
-        vs = ["sw", "ds", "ws", "exp_rs", "se_r", "ss", "ks", "hw", "nc", "dropout_ratio","dc_ratio","norm"]
-        sw, ds, ws, exp_rs, se_r, ss, ks, hw, nc, dropout_ratio, dc_ratio, norm = [params[v] for v in vs]
+        vs = ["sw", "ds", "ws", "exp_rs", "se_r", "ss", "ks", "hw", "nc", "dropout_ratio","dc_ratio","norm","activation_fun"]
+        sw, ds, ws, exp_rs, se_r, ss, ks, hw, nc, dropout_ratio, dc_ratio, norm, activation_fun = [params[v] for v in vs]
         stage_params = list(zip(ds, ws, exp_rs, ss, ks))
-        self.stem = StemIN(3, sw, dc_ratio, norm)
+        self.stem = StemIN(3, sw, dc_ratio, norm, activation_fun)
         prev_w = sw
         for i, (d, w, exp_r, stride, k) in enumerate(stage_params):
-            stage = EffStage(prev_w, exp_r, k, stride, se_r, w, d, dc_ratio, norm)
+            stage = EffStage(prev_w, exp_r, k, stride, se_r, w, d, dc_ratio, norm, activation_fun)
             self.add_module("s{}".format(i + 1), stage)
             prev_w = w
-        self.head = EffHead(prev_w, hw,dropout_ratio, nc, norm)
+        self.head = EffHead(prev_w, hw,dropout_ratio, nc, norm, activation_fun)
         self.apply(init_weights)
 
     def forward(self, x):
@@ -167,6 +167,7 @@ def build_effnet_backbone(cfg, input_shape: ShapeSpec):
         "hw": cfg.MODEL.EFFNET.HEAD_W,
         "dropout_ratio": cfg.MODEL.EFFNET.DROPOUT_RATIO,
         "norm": cfg.MODEL.EFFNET.NORM,
+        "activation_fun": cfg.MODEL.EFFNET.ACTIVATION_FUN
         "nc": None
     }
     model = EffNet(params)

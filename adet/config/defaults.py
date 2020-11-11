@@ -105,6 +105,10 @@ _C.MODEL.EFFNET.HEAD_W = 1280
 _C.MODEL.EFFNET.DC_RATIO = 0.0
 # Dropout ratio
 _C.MODEL.EFFNET.DROPOUT_RATIO = 0.0
+# Type of normalization function to use
+_C.MODEL.EFFNET.NORM = "BN"
+# Activation Function
+_C.MODEL.EFFNET.ACTIVATION_FUN = "silu"
 
 #TODO: Zero Initializing final batch norm hastens training but hurts performance for GN
 # _C.MODEL.EffNet.BN_ZERO_INIT_FINAL_GAMMA = False 
