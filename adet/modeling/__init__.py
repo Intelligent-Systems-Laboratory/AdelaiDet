@@ -9,7 +9,8 @@ from .MEInst import MEInst
 from .condinst import condinst
 
 # import effnet backbone
-from .backbone import build_effnet_fpn_backbone
+from .backbone import build_effnet_bifpn_backbone, build_effnet_fpn_backbone
+from .retinanet_silu import RetinaNet_SiLu
 
 _EXCLUDE = {"torch", "ShapeSpec"}
 __all__ = [k for k in globals().keys() if k not in _EXCLUDE and not k.startswith("_")]
