@@ -15,4 +15,4 @@ MODEL:
     NUM_REPEATS: 6
 INPUT:
   MIN_SIZE_TRAIN: (512,)
-OUTPUT_DIR: output/Efficient/D3/
+OUTPUT_DIR: output/EfficientDet/D3/
