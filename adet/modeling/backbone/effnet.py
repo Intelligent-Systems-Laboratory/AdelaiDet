@@ -199,7 +199,7 @@ class EffNet(Backbone):
             self.add_module("s{}".format(i + 1), stage)
             prev_w = w
         # self.head = EffHead(cfg, prev_w, hw, nc)
-        # self.apply(init_weights)
+        self.apply(init_weights)
 
     # def forward(self, x):
     #     for module in self.children():

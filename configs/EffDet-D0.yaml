@@ -2,6 +2,7 @@ MODEL:
   META_ARCHITECTURE: "RetinaNet_SiLu"
   BACKBONE:
     NAME: "build_effnet_bifpn_backbone"
+  WEIGHTS: "EN-B0_detectron2.pth"
   EffNet:
     STEM_W: 32
     STRIDES: [1, 2, 2, 2, 1, 2, 1]
@@ -56,13 +57,13 @@ DATASETS:
   TRAIN: ("coco_2017_train",)
   TEST: ("coco_2017_val",)
 SOLVER:
-  IMS_PER_BATCH: 16
+  IMS_PER_BATCH: 8
   # BASE_LR: 0.02
-  STEPS: (60000, 80000)
-  MAX_ITER: 90000
+  # STEPS: (60000, 80000)
+  MAX_ITER: 60000
 
   # Based on EffDet Paper Experiments
-  MOMENTUM: 0.9
+  MOMENTUM: 0.9 # doesnt affect retinanethead and bifpn ?
   WEIGHT_DECAY: 0.00004
   WEIGHT_DECAY_NORM: 0.00004 # not sure wheter to use 4e-5 on both
 
@@ -84,4 +85,7 @@ SOLVER:
 INPUT:
   # MIN_SIZE_TRAIN: (640, 672, 704, 736, 768, 800)
   MIN_SIZE_TRAIN: (512, )
+
+OUTPUT_DIR: "output/EffDet-D0_effnet-B0_bifpn_retinanethead"
+
 VERSION: 2
