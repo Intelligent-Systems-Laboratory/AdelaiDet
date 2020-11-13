@@ -1,0 +1,37 @@
+MODEL:
+  META_ARCHITECTURE: "OneStageDetector"
+  PIXEL_MEAN: [103.53, 116.28, 123.675]
+  PIXEL_STD: [57.375, 57.12 , 58.395]
+  BACKBONE:
+    NAME: "build_fcos_effnet_bifpn_backbone"
+    FREEZE_AT: 5
+  EFFNET:
+    OUT_FEATURES: ["s3","s4","s5","s6","s7"]
+    NORM: "FrozenBN"
+    ACTIVATION_FUN: "silu"
+    STEM_W: 32
+    STRIDES: [1, 2, 2, 2, 1, 2, 1]
+    DEPTHS: [1, 2, 2, 3, 3, 4, 1]
+    WIDTHS: [16, 24, 40, 80, 112, 192, 320]
+    EXP_RATIOS: [1, 6, 6, 6, 6, 6, 6]
+    KERNELS: [3, 3, 5, 3, 5, 5, 3]
+    HEAD_W: 1280
+  BiFPN:
+    IN_FEATURES: ["s3","s4","s5","s6","s7"]
+    NORM: "SyncBN"
+  PROPOSAL_GENERATOR:
+    NAME: "FCOS"
+  FCOS:
+    TOP_LEVELS: 0
+DATASETS:
+  TRAIN: ("coco_2017_train",)
+  TEST: ("coco_2017_val",)
+SOLVER:
+  BASE_LR: 0.01
+  MAX_ITER: 90000
+  LR_SCHEDULER_NAME: "WarmupCosineLR"
+  STEPS: (60000, 80000)
+  IMS_PER_BATCH: 32
+  WEIGHT_DECAY: 4e-5
+INPUT:
+  MIN_SIZE_TRAIN: (640, 672, 704, 736, 768, 800)

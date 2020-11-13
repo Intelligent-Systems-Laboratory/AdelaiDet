@@ -1,0 +1,18 @@
+_BASE_: "Base-ElasticDet.yaml"
+MODEL:
+  WEIGHTS: https://isl-pretrained-models.s3.amazonaws.com/EfficientNet/EfficientNet-B2.pth
+  EFFNET:
+    STEM_W: 32
+    STRIDES: [1, 2, 2, 2, 1, 2, 1]
+    DEPTHS: [2, 3, 3, 4, 4, 5, 2]
+    WIDTHS: [16, 24, 48, 88, 120, 208, 352]
+    EXP_RATIOS: [1, 6, 6, 6, 6, 6, 6]
+    KERNELS: [3, 3, 5, 3, 5, 5, 3]
+    HEAD_W: 1408
+  BiFPN:
+    IN_FEATURES: ["s3","s4","s5","s6","s7"]
+    OUT_CHANNELS: 112
+    NUM_REPEATS: 5
+INPUT:
+  MIN_SIZE_TRAIN: (512,)
+OUTPUT_DIR: output/ElasticDet/D2_1x/
