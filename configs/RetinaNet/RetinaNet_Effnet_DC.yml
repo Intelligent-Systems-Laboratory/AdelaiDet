@@ -2,6 +2,7 @@ _BASE_: "../Base-RetinaNet.yaml"
 MODEL:
   BACKBONE:
     NAME: "build_retinanet_effnet_fpn_backbone"
+    FREEZE_AT: 5
   WEIGHTS: https://isl-pretrained-models.s3.amazonaws.com/EfficientNet/EfficientNet-B0.pth
   EFFNET:
     OUT_FEATURES: ["s2", "s3", "s4", "s6"]
@@ -14,6 +15,7 @@ MODEL:
     EXP_RATIOS: [1, 6, 6, 6, 6, 6, 6]
     KERNELS: [3, 3, 5, 3, 5, 5, 3]
     HEAD_W: 1280
+    DC_RATIO: 0.2
   FPN:
     IN_FEATURES: ["s2", "s3", "s4", "s6"]
     NORM: "SyncBN"
@@ -24,4 +26,4 @@ SOLVER:
   LR_SCHEDULER_NAME: "WarmupCosineLR"
   IMS_PER_BATCH: 8
   WEIGHT_DECAY: 4e-5
-OUTPUT_DIR: output/RetinaNet/EfficientNetB0_FPN
+OUTPUT_DIR: output/RetinaNet/EfficientNetB0_FPN/freeeze5/DC
