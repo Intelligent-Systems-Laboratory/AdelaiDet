@@ -135,7 +135,7 @@ def build_retinanet_effnet_fpn_backbone(cfg, input_shape: ShapeSpec):
     bottom_up = build_effnet_backbone(cfg, input_shape)
     in_features = cfg.MODEL.FPN.IN_FEATURES
     out_channels = cfg.MODEL.FPN.OUT_CHANNELS
-    in_channels_p6p7 = bottom_up.output_shape()["s7"].channels
+    in_channels_p6p7 = bottom_up.output_shape()["s6"].channels
     backbone = FPN(
         bottom_up=bottom_up,
         in_features=in_features,

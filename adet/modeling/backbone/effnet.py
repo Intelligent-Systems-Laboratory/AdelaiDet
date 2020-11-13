@@ -139,6 +139,7 @@ class EffNet(Backbone):
         self._out_feature_channels = {"stem": self.stem.out_channels}
 
         prev_w = sw
+        current_stride = self.stem.stride
         self.stage_names, self.stages = [], []
         for i, (d, w, exp_r, stride, k) in enumerate(stage_params):
             stage = EffStage(prev_w, exp_r, k, stride, se_r, w, d, dc_ratio, norm, activation_fun)
@@ -147,7 +148,7 @@ class EffNet(Backbone):
             self.stage_names.append(name)
             self.stages.append(stage)
             self._out_feature_channels[name] = w
-            self._out_feature_strides[name] = stride
+            self._out_feature_strides[name] = current_stride = current_stride * stride
             prev_w = w
         
         self.stage_names = tuple(self.stage_names) #static for scripting
