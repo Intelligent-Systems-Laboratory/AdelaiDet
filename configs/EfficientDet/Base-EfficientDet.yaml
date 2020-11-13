@@ -1,10 +1,13 @@
 _BASE_: "../Base-RetinaNet.yaml"
 MODEL:
+  PIXEL_MEAN: [103.53, 116.28, 123.675]
+  PIXEL_STD: [57.375, 57.12 , 58.395]
   BACKBONE:
     NAME: "build_retinanet_effnet_bifpn_backbone"
+    FREEZE_AT: 5
   EFFNET:
     OUT_FEATURES: ["s3","s4","s5","s6","s7"]
-    NORM: "SyncBN"
+    NORM: "FrozenBN"
     ACTIVATION_FUN: "silu"
     STEM_W: 32
     STRIDES: [1, 2, 2, 2, 1, 2, 1]
