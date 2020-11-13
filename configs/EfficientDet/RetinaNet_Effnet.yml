@@ -2,10 +2,10 @@ _BASE_: "../Base-RetinaNet.yaml"
 MODEL:
   BACKBONE:
     NAME: "build_retinanet_effnet_fpn_backbone"
+  WEIGHTS: https://isl-pretrained-models.s3.amazonaws.com/EfficientNet/EfficientNet-B0.pth
   EFFNET:
-    WEIGHTS: https://isl-pretrained-models.s3.amazonaws.com/EfficientNet/EfficientNet-B0.pth
-    OUT_FEATURES: ["s2","s3","s4","s6"]
-    NORM: "SyncBN"
+    OUT_FEATURES: ["s2", "s3", "s4", "s6"]
+    NORM: "FrozenBN"
     ACTIVATION_FUN: "silu"
     STEM_W: 32
     STRIDES: [1, 2, 2, 2, 1, 2, 1]
@@ -15,11 +15,13 @@ MODEL:
     KERNELS: [3, 3, 5, 3, 5, 5, 3]
     HEAD_W: 1280
   FPN:
-    IN_FEATURES: ["s2","s3","s4","s6"]
+    IN_FEATURES: ["s2", "s3", "s4", "s6"]
     NORM: "SyncBN"
+    OUT_CHANNELS: 192    
 SOLVER:
   BASE_LR: 0.01
   MAX_ITER: 90000
   LR_SCHEDULER_NAME: "WarmupCosineLR"
   IMS_PER_BATCH: 8
   WEIGHT_DECAY: 4e-5
+OUTPUT_DIR: output/RetinaNet/EfficientNetB0_FPN

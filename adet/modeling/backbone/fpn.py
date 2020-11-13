@@ -141,7 +141,7 @@ def build_retinanet_effnet_fpn_backbone(cfg, input_shape: ShapeSpec):
         in_features=in_features,
         out_channels=out_channels,
         norm=cfg.MODEL.FPN.NORM,
-        top_block=LastLevelP6P7(in_channels_p6p7, out_channels),
+        top_block=LastLevelP6P7(in_channels_p6p7, out_channels,"p5"),
         fuse_type=cfg.MODEL.FPN.FUSE_TYPE,
     )
     return backbone
