@@ -16,3 +16,9 @@ MODEL:
   BiFPN:
     IN_FEATURES: ["s3","s4","s5","s6","s7"]
     NORM: "SyncBN"
+SOLVER:
+  BASE_LR: 0.01
+  MAX_ITER: 90000
+  LR_SCHEDULER_NAME: "WarmupCosineLR"
+  IMS_PER_BATCH: 16
+  WEIGHT_DECAY: 4e-5
