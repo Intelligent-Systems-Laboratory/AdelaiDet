@@ -1,5 +1,4 @@
 _BASE_: "Base-EfficientDet.yaml"
-_BASE_: "Base-EfficientDet.yaml"
 MODEL:
   WEIGHTS: https://isl-pretrained-models.s3.amazonaws.com/EfficientNet/EfficientNet-B2.pth
   EFFNET:
@@ -16,4 +15,4 @@ MODEL:
     NUM_REPEATS: 5
 INPUT:
   MIN_SIZE_TRAIN: (512,)
-OUTPUT_DIR: output/Efficient/D2_1x/
+OUTPUT_DIR: output/EfficientDet/D2_1x/
