@@ -61,12 +61,12 @@ class EffHead(CNNBlockBase):
         return x
 
 
-class MBConv(Module):
+class MBConv(CNNBlockBase):
     """Mobile inverted bottleneck block with SE."""
 
     def __init__(self, w_in, exp_r, k, stride, se_r, w_out, DC_RATIO=0.0, norm="BN", activation_fun="silu"):
         # Expansion, kxk dwise, BN, AF, SE, 1x1, BN, skip_connection
-        super(MBConv, self).__init__()
+        super().__init__(w_in,w_out,stride)
         self.exp = None
         w_exp = int(w_in * exp_r)
         if w_exp != w_in:
@@ -196,6 +196,27 @@ class EffNet(Backbone):
             for name in self._out_features
         }
 
+    def freeze(self, freeze_at=0):
+        """
+        Freeze the first several stages of the EfficientNet. Commonly used in
+        fine-tuning.
+        Each stage in EfficientNet is defined by :paper: `EfficientNet` Table 1 Typically, layers that produce the same feature map spatial size are defined as one
+        "stage" by :paper:`FPN`. However, it doesn't apply on stage 6 and stage 2.
+        Args:
+            freeze_at (int): number of stages to freeze.
+                `1` means freezing the stem. `2` means freezing the stem and
+                one stage, etc.
+        Returns:
+            nn.Module: this EfficientNet itself
+        """
+        if freeze_at >= 1:
+            self.stem.freeze()
+        for idx, stage in enumerate(self.stages, start=2):
+            if freeze_at >= idx:
+                for block in stage.children():
+                    block.freeze()
+        return self
+
 
 
 @BACKBONE_REGISTRY.register()
@@ -215,10 +236,9 @@ def build_effnet_backbone(cfg, input_shape: ShapeSpec):
         "activation_fun": cfg.MODEL.EFFNET.ACTIVATION_FUN,
         "nc": None
     }
-    
+    freeze_at = cfg.MODEL.BACKBONE.FREEZE_AT
     out_features = cfg.MODEL.EFFNET.OUT_FEATURES
-    model = EffNet(params, out_features)
-    return model
+    return EffNet(params, out_features).freeze(freeze_at)
 
 
 
