@@ -195,7 +195,7 @@ class EffNet(Backbone):
         #print(self.named_children)
         for name, module in self.named_children():
             x = module(x)
-            if name in ['s3','s4','s5','s6','s7']:
+            if name in self.cfg.MODEL.EN.OUT_FEATURES:
                 output[name] = x
         return output
 
@@ -244,7 +244,8 @@ def build_effnet_backbone(cfg, input_shape):
         state_dict = torch.load(weights_path)
         model.load_state_dict(state_dict, strict=False)
     else:
-        model.apply(init_weights)
+        #model.apply(init_weights)
+        pass
 
     if cfg.MODEL.EN.FREEZE_AT:
         print('freezing model weights')
