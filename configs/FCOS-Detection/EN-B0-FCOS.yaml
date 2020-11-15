@@ -1,6 +1,9 @@
 MODEL:
   META_ARCHITECTURE: "OneStageDetector"
   WEIGHTS: "EN-B0-d2.pth"
+  #WEIGHTS: https://isl-pretrained-models.s3.amazonaws.com/EfficientNet/EfficientNet-B0.pth
+  PIXEL_MEAN: [103.53, 116.28, 123.675]
+  PIXEL_STD: [57.375, 57.12 , 58.395]
   BACKBONE:
     NAME: "build_fcos_effnet_bifpn_backbone"
     FREEZE_AT: 8
@@ -30,13 +33,13 @@ MODEL:
     IN_FEATURES: ['s3','s4','s5','s6','s7']
     OUT_CHANNELS: 64
     NUM_REPEATS: 3
-    NORM: "GN"
+    NORM: "BN"
   PROPOSAL_GENERATOR:
     NAME: "FCOS"
   FCOS:
     TOP_LEVELS: 0
     #default [8, 16, 32, 64, 128]
-    FPN_STRIDES: [2, 4, 8, 16]
+    #FPN_STRIDES: [2, 4, 8, 16]
     NUM_CLS_CONVS: 3
     NUM_BOX_CONVS: 3
 
@@ -60,7 +63,7 @@ INPUT:
   #MIN_SIZE_TRAIN: (640, 672, 704, 736, 768, 800)
   MIN_SIZE_TRAIN: (512,)
   #MIN_SIZE_TEST: (896,)
-OUTPUT_DIR: output/EN-B0-FCOS-512-STRIDES-96
+OUTPUT_DIR: output/EN-B0-FCOS-AGAIN
 
 
 
