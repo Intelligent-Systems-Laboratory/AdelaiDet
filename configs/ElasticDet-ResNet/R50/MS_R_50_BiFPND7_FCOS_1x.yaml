@@ -1,0 +1,11 @@
+_BASE_: "../Base-ElasticDet-ResNet.yaml"
+MODEL:
+  WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
+  RESNETS:
+    DEPTH: 50
+  BiFPN:
+    OUT_CHANNELS: 384
+    NUM_REPEATS: 8
+SOLVER:
+  IMS_PER_BATCH: 16
+OUTPUT_DIR: output/ElasticDet-ResNet/R50/MS_R_50_BIFPND7_FCOS_1x
