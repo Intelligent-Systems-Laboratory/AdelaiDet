@@ -1,20 +1,24 @@
 MODEL:
-  META_ARCHITECTURE: "OneStageDetector"
+  META_ARCHITECTURE: "RetinaNet"
   BACKBONE:
     NAME: "build_fcos_resnet_bifpn_backbone"
   RESNETS:
     OUT_FEATURES: ["res3", "res4", "res5"]
     DEPTH: 50
     NORM: "FrozenBN"
+  ANCHOR_GENERATOR:
+    SIZES: !!python/object/apply:eval ["[[x, x * 2**(1.0/3), x * 2**(2.0/3) ] for x in [32, 64, 128, 256, 512 ]]"]
   BiFPN:
     IN_FEATURES: ["res3", "res4", "res5"]
     OUT_CHANNELS: 160
     NUM_REPEATS: 6
     NORM: "SyncBN"
-  PROPOSAL_GENERATOR:
-    NAME: "FCOS"
   FCOS:
-    TOP_LEVELS: 2
+    TOP_LEVELS: 2 # Parameter is used for Top levels of BiFPN, FCOS Head is not actually used
+  RETINANET:
+    IOU_THRESHOLDS: [0.4, 0.5]
+    IOU_LABELS: [0, -1, 1]
+    SMOOTH_L1_LOSS_BETA: 0.0
 DATASETS:
   TRAIN: ("coco_2017_train",)
   TEST: ("coco_2017_val",)
