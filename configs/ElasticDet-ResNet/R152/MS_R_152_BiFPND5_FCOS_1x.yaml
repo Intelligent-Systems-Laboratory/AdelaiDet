@@ -1,0 +1,16 @@
+_BASE_: "../Base-ElasticDet-ResNet.yaml"
+MODEL:
+  WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-152.pkl"
+  RESNETS:
+    DEPTH: 152
+  BiFPN:
+    OUT_CHANNELS: 288
+    NUM_REPEATS: 7
+SOLVER:
+  BASE_LR: 0.01
+  MAX_ITER: 90000
+  LR_SCHEDULER_NAME: "WarmupCosineLR"
+  STEPS: (60000, 80000)
+  IMS_PER_BATCH: 16
+  WEIGHT_DECAY: 1e-5
+OUTPUT_DIR: output/ElasticDet-ResNet/R152/MS_R_152_BIFPND5_FCOS_1x
